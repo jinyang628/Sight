@@ -6,16 +6,14 @@ using System.Linq;
 
 public class CylinderChangeColor : MonoBehaviour, IPointerDownHandler
 {
-    public Material redMaterial;
-    public Material greenMaterial;
-    public Material blueMaterial;
-    public Material blackMaterial;
+    public GameObject pathTree;
+    public GameObject endTree;
     public bool activate_start;
+    public List<string> pathHistory = new List<string>();
 
     string object_name;
     int index_object;
     List<string> removeList = new List<string>();
-    List<string> pathHistory = new List<string>();
 
     private CylinderRelationships cylinderRelationships;
 
@@ -35,12 +33,16 @@ public class CylinderChangeColor : MonoBehaviour, IPointerDownHandler
             {
                 if (object_name == "E")
                 {
-                    GameObject.Find(object_name).GetComponent<MeshRenderer>().material = blueMaterial;
+                    var x = cylinderRelationships.tree_dict["E"];
+                    var tree = Instantiate(endTree, new Vector3(x[0], 0, x[1]), Quaternion.identity);
+                    tree.name = "ETree";
                     activate_start = true;
                 }
                 else
                 {
-                    GameObject.Find(object_name).GetComponent<MeshRenderer>().material = greenMaterial;
+                    var x = cylinderRelationships.tree_dict[object_name];
+                    var tree = Instantiate(pathTree, new Vector3(x[0], 0, x[1]), Quaternion.identity);
+                    tree.name = string.Format("{0}Tree", object_name);
                 }
                 
                 pathHistory.Add(object_name);
@@ -51,29 +53,32 @@ public class CylinderChangeColor : MonoBehaviour, IPointerDownHandler
             if (pathHistory.Count != 1 && object_name != pathHistory.Last()) //sth aside from starting cylinder/last selected object was selected
             {
                 index_object = pathHistory.IndexOf(object_name);
-                for (int i = (index_object + 1); i < pathHistory.Count; i++)
+                if (index_object != 0 || (index_object == 0 && pathHistory.Last() != "E"))
                 {
-                    if (pathHistory[i] == "E")
+                    for (int i = (index_object + 1); i < pathHistory.Count; i++)
                     {
-                        GameObject.Find(pathHistory[i]).GetComponent<MeshRenderer>().material = blackMaterial;
-                        activate_start = false;
+                        var x = pathHistory[i];
+                        if (x == "E")
+                        {
+                            Destroy(GameObject.Find("ETree"));
+                            activate_start = false;
+                        }
+                        else
+                        {
+                            Destroy(GameObject.Find(string.Format("{0}Tree", x)));
+                        }
+                        removeList.Add(x);
+
                     }
-                    else
+
+                    foreach (string cylinder in removeList)
                     {
-                        GameObject.Find(pathHistory[i]).GetComponent<MeshRenderer>().material = redMaterial;
+                        pathHistory.Remove(cylinder);
                     }
-                    removeList.Add(pathHistory[i]);
-
-                }
-
-                foreach (string cylinder in removeList)
-                {
-                    pathHistory.Remove(cylinder);
-                }
-                removeList = new List<string>();
+                    removeList = new List<string>();
+                }              
             }        
-        }
-        
+        }  
     }
 }
 
