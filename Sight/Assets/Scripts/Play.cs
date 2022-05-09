@@ -9,7 +9,6 @@ public class Play : MonoBehaviour
     {
         SceneManager.LoadScene("Level Selection");
     }
-
     public void CreditsButtonPressed()
     {
         SceneManager.LoadScene("Credits");
