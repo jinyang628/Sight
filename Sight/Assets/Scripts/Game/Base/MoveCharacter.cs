@@ -19,7 +19,7 @@ public class MoveCharacter : MonoBehaviour, IPointerDownHandler
     public GameObject C3InstantiateTime;
     public Dictionary<string, List<string>> level_dict;
     public Dictionary<string, List<int>> tree_dict;
-    public Dictionary<string, string> teleport_dict;
+    public Dictionary<string, List<string>> teleport_dict;
     public int player_count;
 
     private CylinderChangeColor cylinderChangeColor;
@@ -147,6 +147,10 @@ public class MoveCharacter : MonoBehaviour, IPointerDownHandler
                 {"6", new List<int>{32, 16} },
                 {"E", new List<int>{32, 32} }
             };
+
+            PathSelection = GameObject.Find("PathSelection");
+            Instruction_Canvas.SetActive(false);
+
         }
         else if (scene_name == "Level 4")
         {
@@ -225,10 +229,10 @@ public class MoveCharacter : MonoBehaviour, IPointerDownHandler
             {
                 {"S", new List<string> { "2", "4" } },
                 {"2", new List<string> { "3T" } },
-                {"3T", new List<string> { "5" } },
+                {"3T", new List<string> { "6T" } },
                 {"4", new List<string> { "3T", "5" } },
                 {"5", new List<string> { "4", "6T", "7", "8" } },
-                {"6T", new List<string> { "2", "4" } },
+                {"6T", new List<string> { "3T" } },
                 {"7", new List<string> { "5", "E"} },
                 {"8", new List<string> { "5", "E"} },
             };
@@ -245,10 +249,93 @@ public class MoveCharacter : MonoBehaviour, IPointerDownHandler
                 {"E", new List<int>{-48, -16} }
             };
 
-            teleport_dict = new Dictionary<string, string>()
+            teleport_dict = new Dictionary<string, List<string>>()
             {
-                {"3T", "6T"},
-                {"6T", "3T"}
+                {"3T", new List<string> { "2", "4" } },
+                {"6T", new List<string> { "5" } }
+            };
+        }
+        else if (scene_name == "Level 7")
+        {
+            player_count = 3;
+
+            initial_time_restriction = 5;
+            time_restriction = 5;
+
+            level_dict = new Dictionary<string, List<string>>()
+            {
+                {"S", new List<string> { "2T" } },
+                {"2T", new List<string> { "4T", "6T", "8T" } },
+                {"3", new List<string> { "2T", "4T" } },
+                {"4T", new List<string> { "2T", "6T", "8T" } },
+                {"5", new List<string> { "4T", "6T", "7"} },
+                {"6T", new List<string> { "2T", "4T", "8T" } },
+                {"7", new List<string> { "5", "E"} },
+                {"8T", new List<string> { "2T", "4T", "6T"} },
+            };
+
+            tree_dict = new Dictionary<string, List<int>>()
+            {
+                {"2T", new List<int>{0, -16} },
+                {"3", new List<int>{16, -16} },
+                {"4T", new List<int>{32, -16} },
+                {"5", new List<int>{32, -32} },
+                {"6T", new List<int>{32, -48} },
+                {"7", new List<int>{16, -32} },
+                {"8T", new List<int>{0, -48} },
+                {"E", new List<int>{0, -32} }
+            };
+
+            teleport_dict = new Dictionary<string, List<string>>()
+            {
+                {"2T", new List<string> { "3" } },
+                {"4T", new List<string> { "3", "5" } },
+                {"6T", new List<string> { "5" } },
+                {"8T", new List<string> { "E" } }
+            };
+        }
+        else if (scene_name == "Level 8")
+        {
+            player_count = 3;
+
+            initial_time_restriction = 5;
+            time_restriction = 5;
+
+            level_dict = new Dictionary<string, List<string>>()
+            {
+                {"S", new List<string> { "2", "11" } },
+                {"2", new List<string> { "3T" } },
+                {"3T", new List<string> { "6T", "10T" } },
+                {"4", new List<string> { "3T", "5" } },
+                {"5", new List<string> { "4", "E" } },
+                {"6T", new List<string> { "3T", "10T" } },
+                {"7", new List<string> { "8", "E"} },
+                {"8", new List<string> { "7", "9" } },
+                {"9", new List<string> { "8", "10T", "11" } },              
+                {"10T", new List<string> { "3T", "6T" } },
+                {"11", new List<string> { "9" } }
+            };
+
+            tree_dict = new Dictionary<string, List<int>>()
+            {
+                {"2", new List<int>{0, -16} },
+                {"3T", new List<int>{0, -32} },
+                {"4", new List<int>{16, -32} },
+                {"5", new List<int>{16, -16} },
+                {"6T", new List<int>{32, -32} },
+                {"7", new List<int>{48, -16} },
+                {"8", new List<int>{48, 0} },
+                {"9", new List<int>{32, 0} },
+                {"10T", new List<int>{32, 16} },
+                {"11", new List<int>{16, 0} },
+                {"E", new List<int>{32, -16} }
+            };
+
+            teleport_dict = new Dictionary<string, List<string>>()
+            {
+                {"3T", new List<string> { "2", "4" } },
+                {"6T", new List<string> { "E" } },
+                {"10T", new List<string> { "9" } },
             };
         }
 
@@ -257,12 +344,7 @@ public class MoveCharacter : MonoBehaviour, IPointerDownHandler
         time_counter.GetComponent<Text>().text = time_restriction.ToString();
         instruction.GetComponent<Text>().text = string.Format("Reach in {0} moves", time_restriction);
         next_scene_load = SceneManager.GetActiveScene().buildIndex + 1;
-        if (scene_name == "Level 3")
-        {
-            PathSelection = GameObject.Find("PathSelection");
-            Instruction_Canvas.SetActive(false);
-        }
-       
+
     }
 
     private void Update()
@@ -330,7 +412,10 @@ public class MoveCharacter : MonoBehaviour, IPointerDownHandler
                         {
                             if (Math.Abs(Char1_position.x - Char2_position.x) <= 2 && Math.Abs(Char1_position.z - Char2_position.z) <= 2)
                             {
-                                SightFailed(Character_1, Character_2);
+                                if (cylinderChangeColor.c1_pathHistory[0] != "E" || cylinderChangeColor.c2_pathHistory[0] != "E")
+                                {
+                                    SightFailed(Character_1, Character_2);
+                                }                        
                             }
                         }
                         else
@@ -370,7 +455,10 @@ public class MoveCharacter : MonoBehaviour, IPointerDownHandler
                         {
                             if (Math.Abs(Char1_position.x - Char3_position.x) <= 2 && Math.Abs(Char1_position.z - Char3_position.z) <= 2)
                             {
-                                SightFailed(Character_1, Character_3);
+                                if (cylinderChangeColor.c1_pathHistory[0] != "E" || cylinderChangeColor.c3_pathHistory[0] != "E")
+                                {
+                                    SightFailed(Character_1, Character_3);
+                                }
                             }
                         }
                         else
@@ -384,7 +472,7 @@ public class MoveCharacter : MonoBehaviour, IPointerDownHandler
                     }
                 }
             }
-            else if (start_move_2 == true && start_move_3 == true)
+            if (start_move_2 == true && start_move_3 == true)
             {
                 GameObject Character_2 = GameObject.Find("Character2");
                 Transform Char2_transform = Character_2.transform;
@@ -416,7 +504,10 @@ public class MoveCharacter : MonoBehaviour, IPointerDownHandler
                     {
                         if (Math.Abs(Char2_position.x - Char3_position.x) <= 2 && Math.Abs(Char2_position.z - Char3_position.z) <= 2)
                         {
-                            SightFailed(Character_2, Character_3);
+                            if (cylinderChangeColor.c2_pathHistory[0] != "E" || cylinderChangeColor.c3_pathHistory[0] != "E")
+                            {
+                                SightFailed(Character_2, Character_3);
+                            }
                         }
                     }
                     else
@@ -563,11 +654,6 @@ public class MoveCharacter : MonoBehaviour, IPointerDownHandler
         if (next_level_delay == true)
         {
             SceneManager.LoadScene(next_scene_load);
-            if (SceneManager.GetActiveScene().buildIndex == 22)
-            {
-                Debug.Log("YOU WIN GAME");
-                //thanks you scene 
-            }
 
             if (next_scene_load > PlayerPrefs.GetInt("levelAt"))
             {
@@ -741,20 +827,46 @@ public class MoveCharacter : MonoBehaviour, IPointerDownHandler
                     string last_destination = walking_path[0];
                     if (c_name == "Character1")
                     {
-                        TeleportCharacter(c_name, last_destination);
-                        cylinderChangeColor.c1_pathHistory.Remove(last_destination);                  
+                        if (last_destination.Substring(last_destination.Length - 1) == "T")
+                        {
+                            Transform new_destination = GameObject.Find(walking_path[1]).transform;
+                            Vector3 new_coord = new Vector3(new_destination.position.x, 0, new_destination.position.z);
+                            character.transform.position = new_coord;
+                            character.transform.eulerAngles = new Vector3(0, 45, 0);
+                            cylinderChangeColor.c1_pathHistory.Remove(walking_path[1]);
+                        }
+                        cylinderChangeColor.c1_pathHistory.Remove(last_destination);
+                        character.transform.eulerAngles = new Vector3(0, 45, 0);
                         nextDestination = GameObject.Find(cylinderChangeColor.c1_pathHistory[0]);
                     }
                     else if (c_name == "Character2")
                     {
-                        TeleportCharacter(c_name, last_destination);
+                        if (last_destination.Substring(last_destination.Length - 1) == "T")
+                        {
+                            Debug.Log("2reaches here");
+                            Transform new_destination = GameObject.Find(walking_path[1]).transform;
+                            Vector3 new_coord = new Vector3(new_destination.position.x, 0, new_destination.position.z);
+                            character.transform.position = new_coord;
+                            character.transform.eulerAngles = new Vector3(0, 45, 0);
+                            cylinderChangeColor.c2_pathHistory.Remove(walking_path[1]);
+                        }
                         cylinderChangeColor.c2_pathHistory.Remove(last_destination);
+                        character.transform.eulerAngles = new Vector3(0, 45, 0);
                         nextDestination = GameObject.Find(cylinderChangeColor.c2_pathHistory[0]);
                     }
                     else
                     {
-                        TeleportCharacter(c_name, last_destination);
+                        if (last_destination.Substring(last_destination.Length - 1) == "T")
+                        {
+                            Debug.Log("3reaches here");
+                            Transform new_destination = GameObject.Find(walking_path[1]).transform;
+                            Vector3 new_coord = new Vector3(new_destination.position.x, 0, new_destination.position.z);
+                            character.transform.position = new_coord; 
+                            character.transform.eulerAngles = new Vector3(0, 45, 0);
+                            cylinderChangeColor.c3_pathHistory.Remove(walking_path[1]);
+                        }
                         cylinderChangeColor.c3_pathHistory.Remove(last_destination);
+                        character.transform.eulerAngles = new Vector3(0, 45, 0);
                         nextDestination = GameObject.Find(cylinderChangeColor.c3_pathHistory[0]);
                     }
 
@@ -794,26 +906,22 @@ public class MoveCharacter : MonoBehaviour, IPointerDownHandler
     void EndMove(string character_name)
     {
         GameObject character_done = GameObject.Find(character_name);
-        character_done.GetComponent<Animator>().runtimeAnimatorController = Resources.Load<RuntimeAnimatorController>("Locomotion with Head");
-        character_done.transform.position = Vector3.MoveTowards(character_done.transform.position, end_target, speed * Time.deltaTime);
-        if (character_done.transform.position == end_target)
-        {            
-            destroyed_counter++;
-            if (character_name == "Character1")
-            {
-                finish_move_1 = false;
-            }
-            if (character_name == "Character2")
-            {
-                finish_move_2 = false;
-            }
-            else
-            {
-                finish_move_3 = false;
-            }
-
-            character_done.transform.position = new Vector3(0, -100, 0);
+        character_done.GetComponent<Animator>().runtimeAnimatorController = Resources.Load<RuntimeAnimatorController>("Locomotion with Head");        
+        destroyed_counter++;
+        if (character_name == "Character1")
+        {
+            finish_move_1 = false;
         }
+        if (character_name == "Character2")
+        {
+            finish_move_2 = false;
+        }
+        else
+        {
+            finish_move_3 = false;
+        }
+
+        character_done.transform.position = new Vector3(0, -100, 0);
     }
 
     void LoadRunAnimation(string character_name)
@@ -832,16 +940,5 @@ public class MoveCharacter : MonoBehaviour, IPointerDownHandler
         start_move_1 = false;
         start_move_2 = false;
         start_move_3 = false;
-    }
-
-    void TeleportCharacter(string character, string last_destination)
-    {
-        if (last_destination.Substring(last_destination.Length - 1) == "T")
-        {
-            GameObject characterx = GameObject.Find(character);
-            Transform new_destination = GameObject.Find(teleport_dict[last_destination]).transform;
-            Vector3 new_coord = new Vector3(new_destination.position.x, (float)-5.45, new_destination.position.z);
-            characterx.transform.position = new_coord;
-        }
     }
 }

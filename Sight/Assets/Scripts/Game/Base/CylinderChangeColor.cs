@@ -53,100 +53,78 @@ public class CylinderChangeColor : MonoBehaviour, IPointerDownHandler
         object_name = object_ob.name;
         if (!pathHistory.Contains(object_name))
         {
-            if (moveCharacter.level_dict[pathHistory.Last()].Contains(object_name)) //valid cylinder
+            if (pathHistory.Count >= 2 && pathHistory.Last().Contains("T") && pathHistory[pathHistory.Count-2].Contains("T"))
             {
-                if (scene_name == "Level 1")
-                { 
+                if (moveCharacter.teleport_dict[pathHistory.Last()].Contains(object_name)) //valid cylinder
+                {
                     if (object_name == "E")
                     {
-                        cursor_name = "5";
-                    }
-
-                    else
-                    {
-                        cursor_name = object_name;
-                    }
-                    Color i = GameObject.Find(string.Format("Cursor{0}", cursor_name)).GetComponent<Image>().color;
-                    GameObject.Find(string.Format("Cursor{0}", cursor_name)).GetComponent<Image>().color = new Color(i.r, i.g, i.b, 0);
-                }
-
-                if (object_name == "E")
-                {
-                    if (scene_name == "Level 1")
-                    {
-                        Color j = GameObject.Find("CursorS").GetComponent<Image>().color;
-                        GameObject.Find("CursorS").GetComponent<Image>().color = new Color(j.r, j.g, j.b, 1);
-                    }
-                    var x = moveCharacter.tree_dict["E"];
-                    var tree = Instantiate(endTree, new Vector3(x[0], 0, x[1]), Quaternion.identity);
-                    tree.name = "ETree";
-                    
-                }
-                else
-                {
-                    if (scene_name == "Level 1")
-                    {
-                        Color j = GameObject.Find(string.Format("Cursor{0}", Convert.ToInt32(object_name) + 1)).GetComponent<Image>().color;
-                        GameObject.Find(string.Format("Cursor{0}", Convert.ToInt32(object_name) + 1)).GetComponent<Image>().color = new Color(j.r, j.g, j.b, 1);
-                    }
-                    
-                    if (object_name.Substring(object_name.Length - 1) == "T")
-                    {
-                        var y = moveCharacter.tree_dict[object_name];
-                        var tree1 = Instantiate(pathTree, new Vector3(y[0], 0, y[1]), Quaternion.identity);
-                        tree1.name = string.Format("{0}Tree", object_name);
-                        var tree2 = Instantiate(pathTree, new Vector3(y[2], 0, y[3]), Quaternion.identity);
-                        tree2.name = string.Format("{0}Tree", moveCharacter.teleport_dict[object_name]);
+                        var x = moveCharacter.tree_dict["E"];
+                        var tree = Instantiate(endTree, new Vector3(x[0], 0, x[1]), Quaternion.identity);
+                        tree.name = "ETree";
                     }
                     else
-                    {
+                    {                          
                         var x = moveCharacter.tree_dict[object_name];
                         var tree = Instantiate(pathTree, new Vector3(x[0], 0, x[1]), Quaternion.identity);
                         tree.name = string.Format("{0}Tree", object_name);
                     }
 
+                    AddtoPath();
                 }
-
-                pathHistory.Add(object_name);
-                if (c1_path == true)
+            }
+            
+            else
+            {
+                if (moveCharacter.level_dict[pathHistory.Last()].Contains(object_name)) //valid cylinder
                 {
-                    c1_pathHistory.Add(object_name);
-                }
-                else if (c2_path == true)
-                {
-                    c2_pathHistory.Add(object_name);
-                }
-                else
-                {
-                    c3_pathHistory.Add(object_name);
-                }
-
-                if (c1_pathHistory[c1_pathHistory.Count - 1] == "E")
-                {
-                    if (moveCharacter.player_count == 1)
+                    if (scene_name == "Level 1")
                     {
-                        activate_start = true;
+                        if (object_name == "E")
+                        {
+                            cursor_name = "5";
+                        }
+
+                        else
+                        {
+                            cursor_name = object_name;
+                        }
+                        Color i = GameObject.Find(string.Format("Cursor{0}", cursor_name)).GetComponent<Image>().color;
+                        GameObject.Find(string.Format("Cursor{0}", cursor_name)).GetComponent<Image>().color = new Color(i.r, i.g, i.b, 0);
+                    }
+
+                    if (object_name == "E")
+                    {
+                        if (scene_name == "Level 1")
+                        {
+                            Color j = GameObject.Find("CursorS").GetComponent<Image>().color;
+                            GameObject.Find("CursorS").GetComponent<Image>().color = new Color(j.r, j.g, j.b, 1);
+                        }
+                        var x = moveCharacter.tree_dict["E"];
+                        var tree = Instantiate(endTree, new Vector3(x[0], 0, x[1]), Quaternion.identity);
+                        tree.name = "ETree";
+
                     }
                     else
                     {
-                        if (c2_pathHistory[c2_pathHistory.Count - 1] == "E")
+                        if (scene_name == "Level 1")
                         {
-                            if (moveCharacter.player_count == 2)
-                            {
-                                activate_start = true;
-                            }
-                            else
-                            {
-                                if (c3_pathHistory[c3_pathHistory.Count - 1] == "E")
-                                {
-                                    activate_start = true;
-                                }
-                            }
+                            Color j = GameObject.Find(string.Format("Cursor{0}", Convert.ToInt32(object_name) + 1)).GetComponent<Image>().color;
+                            GameObject.Find(string.Format("Cursor{0}", Convert.ToInt32(object_name) + 1)).GetComponent<Image>().color = new Color(j.r, j.g, j.b, 1);
                         }
+ 
+                        var y = moveCharacter.tree_dict[object_name];
+                        var tree1 = Instantiate(pathTree, new Vector3(y[0], 0, y[1]), Quaternion.identity);
+                        tree1.name = string.Format("{0}Tree", object_name);
+                        
                     }
+
+                    AddtoPath();
                 }
-                    
             }
+
+            
+
         }
         else
         {
@@ -317,7 +295,7 @@ public class CylinderChangeColor : MonoBehaviour, IPointerDownHandler
         }
     }
 
-    public void InstantiateTrees()
+    void InstantiateTrees()
     {
         for (int i = 1; i < pathHistory.Count; i++)
         {
@@ -335,8 +313,6 @@ public class CylinderChangeColor : MonoBehaviour, IPointerDownHandler
                 {
                     var tree1 = Instantiate(pathTree, new Vector3(y[0], 0, y[1]), Quaternion.identity);
                     tree1.name = string.Format("{0}Tree", x);
-                    var tree2 = Instantiate(pathTree, new Vector3(y[2], 0, y[3]), Quaternion.identity);
-                    tree2.name = string.Format("{0}Tree", moveCharacter.teleport_dict[x]);
                 }
                 else
                 {         
@@ -345,6 +321,48 @@ public class CylinderChangeColor : MonoBehaviour, IPointerDownHandler
                 }
             }
                 
+        }
+    }
+
+    void AddtoPath()
+    {
+        pathHistory.Add(object_name);
+        if (c1_path == true)
+        {
+            c1_pathHistory.Add(object_name);
+        }
+        else if (c2_path == true)
+        {
+            c2_pathHistory.Add(object_name);
+        }
+        else
+        {
+            c3_pathHistory.Add(object_name);
+        }
+
+        if (c1_pathHistory[c1_pathHistory.Count - 1] == "E")
+        {
+            if (moveCharacter.player_count == 1)
+            {
+                activate_start = true;
+            }
+            else
+            {
+                if (c2_pathHistory[c2_pathHistory.Count - 1] == "E")
+                {
+                    if (moveCharacter.player_count == 2)
+                    {
+                        activate_start = true;
+                    }
+                    else
+                    {
+                        if (c3_pathHistory[c3_pathHistory.Count - 1] == "E")
+                        {
+                            activate_start = true;
+                        }
+                    }
+                }
+            }
         }
     }
 }
