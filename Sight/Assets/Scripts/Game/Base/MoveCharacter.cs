@@ -38,7 +38,6 @@ public class MoveCharacter : MonoBehaviour, IPointerDownHandler
     bool finish_move_1;
     bool finish_move_2;
     bool finish_move_3;
-    bool counter_character = false;
     bool next_level_delay = false;
     string inst_time_1;
     string inst_time_2;
@@ -46,6 +45,7 @@ public class MoveCharacter : MonoBehaviour, IPointerDownHandler
     string scene_name;
     string cursor_number;
     string counter_character_name = "NOT SET";
+    bool first_counter = true;
     int time_passed;
     int destroyed_counter = 0;
     int next_scene_load;
@@ -54,7 +54,6 @@ public class MoveCharacter : MonoBehaviour, IPointerDownHandler
     float time_delay = 2f;
     float nextUsage = 1000000f;
     AudioSource footsteps;
-    Vector3 end_target;
 
     private void Start()
     {
@@ -257,6 +256,44 @@ public class MoveCharacter : MonoBehaviour, IPointerDownHandler
         }
         else if (scene_name == "Level 7")
         {
+            player_count = 2;
+
+            initial_time_restriction = 3;
+            time_restriction = 3;
+
+            level_dict = new Dictionary<string, List<string>>()
+            {
+                {"S", new List<string> { "2T", "3", "7" } },
+                {"2T", new List<string> { "6T", "8T" } },
+                {"3", new List<string> { "4" } },
+                {"4", new List<string> { "3", "5"} },
+                {"5", new List<string> { "4", "6T"} },
+                {"6T", new List<string> { "2T", "8T"} },
+                {"7", new List<string> { "8T" } },
+                {"8T", new List<string> { "2T", "6T"} },
+            };
+
+            tree_dict = new Dictionary<string, List<int>>()
+            {
+                {"2T", new List<int>{0, -16} },
+                {"3", new List<int>{-16, 0} },
+                {"4", new List<int>{-16, 16} },
+                {"5", new List<int>{0, 16} },
+                {"6T", new List<int>{16, 16} },
+                {"7", new List<int>{16, 0} },
+                {"8T", new List<int>{32, 0} },
+                {"E", new List<int>{32, 16} }
+            };
+
+            teleport_dict = new Dictionary<string, List<string>>()
+            {
+                {"2T", new List<string> { } },
+                {"6T", new List<string> { "5", "E" } },
+                {"8T", new List<string> { "7", "E" } }
+            };
+        }
+        else if (scene_name == "Level 8")
+        {
             player_count = 3;
 
             initial_time_restriction = 5;
@@ -294,7 +331,7 @@ public class MoveCharacter : MonoBehaviour, IPointerDownHandler
                 {"8T", new List<string> { "E" } }
             };
         }
-        else if (scene_name == "Level 8")
+        else if (scene_name == "Level 9")
         {
             player_count = 3;
 
@@ -338,8 +375,49 @@ public class MoveCharacter : MonoBehaviour, IPointerDownHandler
                 {"10T", new List<string> { "9" } },
             };
         }
+        else if (scene_name == "Level 10")
+        {
+            player_count = 3;
 
-        end_target = new Vector3(tree_dict["E"][0], character1.transform.position.y, tree_dict["E"][1]);
+            initial_time_restriction = 6;
+            time_restriction = 6;
+
+            level_dict = new Dictionary<string, List<string>>()
+            {
+                {"S", new List<string> { "2T", "4T" } },
+                {"2T", new List<string> { "3T", "4T", "9T" } },
+                {"3T", new List<string> { "2T", "4T", "9T" } },
+                {"4T", new List<string> { "2T", "3T", "9T" } },
+                {"5", new List<string> { "2T", "4T", "6" } },
+                {"6", new List<string> { "3T", "5", "9T" } },
+                {"7", new List<string> { "4T", "8", "E"} },
+                {"8", new List<string> { "7", "9T" } },
+                {"9T", new List<string> { "2T", "3T", "4T" } },
+                {"10T", new List<string> { "3T", "6T" } }
+            };
+
+            tree_dict = new Dictionary<string, List<int>>()
+            {
+                {"2T", new List<int>{-16, 0} },
+                {"3T", new List<int>{-32, 0} },
+                {"4T", new List<int>{0, 16} },
+                {"5", new List<int>{-16, 16} },
+                {"6", new List<int>{-32, 16} },
+                {"7", new List<int>{0, 32} },
+                {"8", new List<int>{-16, 32} },
+                {"9T", new List<int>{-32, 32} },
+                {"E", new List<int>{0, 48} }
+            };
+
+            teleport_dict = new Dictionary<string, List<string>>()
+            {
+                {"2T", new List<string> { "3T", "5" } },
+                {"3T", new List<string> { "2T", "6" } },
+                {"4T", new List<string> { "5", "7" } },
+                {"9T", new List<string> { "6", "8" } }
+            };
+        }
+
         time_passed = 0;
         time_counter.GetComponent<Text>().text = time_restriction.ToString();
         instruction.GetComponent<Text>().text = string.Format("Reach in {0} moves", time_restriction);
@@ -392,40 +470,61 @@ public class MoveCharacter : MonoBehaviour, IPointerDownHandler
                     Transform Char2_transform = Character_2.transform;
                     Vector3 Char2_position = Char2_transform.position;
                     float angle_2 = Char2_transform.eulerAngles.y;
-                    if ((85 < angle_1 && angle_1 < 95 && 85 < angle_2 && angle_2 < 95) || (265 < angle_1 && angle_1 < 275 && 265 < angle_2 && angle_2 < 275))
+                    if (Math.Abs(Char1_position.y - Char2_position.y) <= 2)
                     {
-                        if (Math.Abs(Char1_position.x - Char2_position.x) <= 16 && Math.Abs(Char1_position.z - Char2_position.z) <= 0.5)
+                        if ((85 < angle_1 && angle_1 < 95 && 85 < angle_2 && angle_2 < 95) || (265 < angle_1 && angle_1 < 275 && 265 < angle_2 && angle_2 < 275))
                         {
-                            SightFailed(Character_1, Character_2);
-                        }
-                    }
-                    else if ((175 < angle_1 && angle_1 < 185 && 175 < angle_2 && angle_2 < 185) || (angle_1 < 5 && angle_2 < 5))
-                    {
-                        if (Math.Abs(Char1_position.z - Char2_position.z) <= 16 && Math.Abs(Char1_position.x - Char2_position.x) <= 0.5)
-                        {
-                            SightFailed(Character_1, Character_2);
-                        }
-                    }                    
-                    else 
-                    {
-                        if (time_passed >= 1)
-                        {
-                            if (Math.Abs(Char1_position.x - Char2_position.x) <= 2 && Math.Abs(Char1_position.z - Char2_position.z) <= 2)
-                            {
-                                if (cylinderChangeColor.c1_pathHistory[0] != "E" || cylinderChangeColor.c2_pathHistory[0] != "E")
-                                {
-                                    SightFailed(Character_1, Character_2);
-                                }                        
-                            }
-                        }
-                        else
-                        {
-                            if (Math.Abs(angle_1 - angle_2) <= 5)
+                            if (Math.Abs(Char1_position.z - Char2_position.z) <= 0.5)
                             {
                                 SightFailed(Character_1, Character_2);
                             }
                         }
-                        
+                        else if ((175 < angle_1 && angle_1 < 185 && 175 < angle_2 && angle_2 < 185) || (angle_1 < 5 && angle_2 < 5) || (angle_1 > 355 && angle_2 > 355))
+                        {
+                            if (Math.Abs(Char1_position.x - Char2_position.x) <= 0.5)
+                            {
+                                SightFailed(Character_1, Character_2);
+                            }
+                        }
+                        else if (175 < Math.Abs(angle_1 - angle_2) && Math.Abs(angle_1 - angle_2) < 185)
+                        {
+                            if ((85 < angle_1 && angle_1 < 95) || (265 < angle_1 && angle_1 < 275))
+                            {
+                                if (Math.Abs(Char1_position.z - Char2_position.z) <= 0.5)
+                                {
+                                    SightFailed(Character_1, Character_2);
+                                }
+                            }
+                            else
+                            {
+                                if (Math.Abs(Char1_position.x - Char2_position.x) <= 0.5)
+                                {
+                                    SightFailed(Character_1, Character_2);
+                                }
+                            }
+                        }
+                        else
+                        {
+                            if (time_passed >= 1)
+                            {
+                                    if (Math.Abs(Char1_position.x - Char2_position.x) < 2 && Math.Abs(Char1_position.z - Char2_position.z) < 2)
+                                    {
+                                        if (cylinderChangeColor.c1_pathHistory[0] != "E" || cylinderChangeColor.c2_pathHistory[0] != "E")
+                                        {
+                                            SightFailed(Character_1, Character_2);
+                                        }
+                                    }
+
+                            }
+                            else
+                            {
+                                if (Math.Abs(angle_1 - angle_2) <= 5)
+                                {
+                                    SightFailed(Character_1, Character_2);
+                                }
+                            }
+
+                        }
                     }
                 }
 
@@ -435,40 +534,67 @@ public class MoveCharacter : MonoBehaviour, IPointerDownHandler
                     Transform Char3_transform = Character_3.transform;
                     Vector3 Char3_position = Char3_transform.position;
                     float angle_3 = Char3_transform.eulerAngles.y;
-                    if ((85 < angle_1 && angle_1 < 95 && 85 < angle_3 && angle_3 < 95) || (265 < angle_1 && angle_1 < 275 && 265 < angle_3 && angle_3 < 275))
+                    if (Math.Abs(Char1_position.y - Char3_position.y) <= 2)
                     {
-                        if (Math.Abs(Char1_position.x - Char3_position.x) <= 16 && Math.Abs(Char1_position.z - Char3_position.z) <= 0.5)
+                        if ((85 < angle_1 && angle_1 < 95 && 85 < angle_3 && angle_3 < 95) || (265 < angle_1 && angle_1 < 275 && 265 < angle_3 && angle_3 < 275))
                         {
-                            SightFailed(Character_1, Character_3);
-                        }
-                    }
-                    else if ((175 < angle_1 && angle_1 < 185 && 175 < angle_3 && angle_3 < 185) || (angle_1 < 5 && angle_3 < 5))
-                    {
-                        if (Math.Abs(Char1_position.z - Char3_position.z) <= 16 && Math.Abs(Char1_position.x - Char3_position.x) <= 0.5)
-                        {
-                            SightFailed(Character_1, Character_3);
-                        }
-                    }
-                    else
-                    {
-                        if (time_passed >= 1)
-                        {
-                            if (Math.Abs(Char1_position.x - Char3_position.x) <= 2 && Math.Abs(Char1_position.z - Char3_position.z) <= 2)
+                            if (Math.Abs(Char1_position.z - Char3_position.z) <= 0.5)
                             {
-                                if (cylinderChangeColor.c1_pathHistory[0] != "E" || cylinderChangeColor.c3_pathHistory[0] != "E")
+                                Debug.Log("error arrives here");
+                                SightFailed(Character_1, Character_3);
+                            }
+                        }
+                        else if ((175 < angle_1 && angle_1 < 185 && 175 < angle_3 && angle_3 < 185) || (angle_1 < 5 && angle_3 < 5) || (angle_1 > 355 && angle_3 > 355))
+                        {
+
+                            if (Math.Abs(Char1_position.x - Char3_position.x) <= 0.5)
+                            {
+                                Debug.Log("error arrives here1");
+                                SightFailed(Character_1, Character_3);
+                            }
+                        }
+                        else if (175 < Math.Abs(angle_1 - angle_3) && Math.Abs(angle_1 - angle_3) < 185)
+                        {
+
+                            if ((85 < angle_1 && angle_1 < 95) || (265 < angle_1 && angle_1 < 275))
+                            {
+                                if (Math.Abs(Char1_position.z - Char3_position.z) <= 0.5)
                                 {
+                                    Debug.Log("error arrives here2");
+                                    SightFailed(Character_1, Character_3);
+                                }
+                            }
+                            else
+                            {
+                                if (Math.Abs(Char1_position.x - Char3_position.x) <= 0.5)
+                                {
+                                    Debug.Log("error arrives here3");
                                     SightFailed(Character_1, Character_3);
                                 }
                             }
                         }
                         else
                         {
-                            if (Math.Abs(angle_1 - angle_3) <= 5)
+                            if (time_passed >= 1)
                             {
-                                SightFailed(Character_1, Character_3);
+                                    if (Math.Abs(Char1_position.x - Char3_position.x) < 2 && Math.Abs(Char1_position.z - Char3_position.z) < 2)
+                                    {
+                                        if (cylinderChangeColor.c1_pathHistory[0] != "E" || cylinderChangeColor.c3_pathHistory[0] != "E")
+                                        {
+                                            Debug.Log("error arrives here4");
+                                            SightFailed(Character_1, Character_3);
+                                        }
+                                    }
                             }
-                        }
+                            else
+                            {
+                                if (Math.Abs(angle_1 - angle_3) <= 5)
+                                {
+                                    SightFailed(Character_1, Character_3);
+                                }
+                            }
 
+                        }
                     }
                 }
             }
@@ -483,28 +609,34 @@ public class MoveCharacter : MonoBehaviour, IPointerDownHandler
                 Transform Char3_transform = Character_3.transform;
                 Vector3 Char3_position = Char3_transform.position;
                 float angle_3 = Char3_transform.eulerAngles.y;
-
-                if ((85 < angle_2 && angle_2 < 95 && 85 < angle_3 && angle_3 < 95) || (265 < angle_2 && angle_2 < 275 && 265 < angle_3 && angle_3 < 275))
+                if (Math.Abs(Char2_position.y - Char3_position.y) <= 2)
                 {
-                    if (Math.Abs(Char2_position.x - Char3_position.x) <= 16 && Math.Abs(Char2_position.z - Char3_position.z) <= 0.5)
+                    if ((85 < angle_2 && angle_2 < 95 && 85 < angle_3 && angle_3 < 95) || (265 < angle_2 && angle_2 < 275 && 265 < angle_3 && angle_3 < 275))
                     {
-                        SightFailed(Character_2, Character_3);
-                    }
-                }
-                else if ((175 < angle_2 && angle_2 < 185 && 175 < angle_3 && angle_3 < 185) || (angle_2 < 5 && angle_3 < 5))
-                {
-                    if (Math.Abs(Char2_position.z - Char3_position.z) <= 16 && Math.Abs(Char2_position.x - Char3_position.x) <= 0.5)
-                    {
-                        SightFailed(Character_2, Character_3);
-                    }
-                }
-                else
-                {
-                    if (time_passed >= 1)
-                    {
-                        if (Math.Abs(Char2_position.x - Char3_position.x) <= 2 && Math.Abs(Char2_position.z - Char3_position.z) <= 2)
+                        if (Math.Abs(Char2_position.z - Char3_position.z) <= 0.5)
                         {
-                            if (cylinderChangeColor.c2_pathHistory[0] != "E" || cylinderChangeColor.c3_pathHistory[0] != "E")
+                            SightFailed(Character_2, Character_3);
+                        }
+                    }
+                    else if ((175 < angle_2 && angle_2 < 185 && 175 < angle_3 && angle_3 < 185) || (angle_2 < 5 && angle_3 < 5) || (angle_2 > 355 && angle_3 > 355))
+                    {
+                        if (Math.Abs(Char2_position.x - Char3_position.x) <= 0.5)
+                        {
+                            SightFailed(Character_2, Character_3);
+                        }
+                    }
+                    else if (175 < Math.Abs(angle_2 - angle_3) && Math.Abs(angle_2 - angle_3) < 185)
+                    {
+                        if ((85 < angle_2 && angle_2 < 95) || (265 < angle_2 && angle_2 < 275))
+                        {
+                            if (Math.Abs(Char2_position.z - Char3_position.z) <= 0.5)
+                            {
+                                SightFailed(Character_2, Character_3);
+                            }
+                        }
+                        else
+                        {
+                            if (Math.Abs(Char2_position.x - Char3_position.x) <= 0.5)
                             {
                                 SightFailed(Character_2, Character_3);
                             }
@@ -512,12 +644,25 @@ public class MoveCharacter : MonoBehaviour, IPointerDownHandler
                     }
                     else
                     {
-                        if (Math.Abs(angle_2 - angle_3) <= 5)
+                        if (time_passed >= 1)
                         {
-                            SightFailed(Character_2, Character_3);
+                            if (Math.Abs(Char2_position.x - Char3_position.x) < 2 && Math.Abs(Char2_position.z - Char3_position.z) < 2)
+                            {
+                                if (cylinderChangeColor.c2_pathHistory[0] != "E" || cylinderChangeColor.c3_pathHistory[0] != "E")
+                                {
+                                    SightFailed(Character_2, Character_3);
+                                }
+                            }
                         }
-                    }
+                        else
+                        {
+                            if (Math.Abs(angle_2 - angle_3) <= 5)
+                            {
+                                SightFailed(Character_2, Character_3);
+                            }
+                        }
 
+                    }
                 }
             }
         }
@@ -616,8 +761,8 @@ public class MoveCharacter : MonoBehaviour, IPointerDownHandler
             start_turn = false;
             cylinderChangeColor.activate_start = false;
             destroyed_counter = 0;
-            counter_character = false;
-            counter_character_name = "NOT SET";        
+            counter_character_name = "NOT SET";
+            first_counter = true;
             time_passed = 0;
             GameObject.Find("Main Camera").GetComponent<PhysicsRaycaster>().enabled = true;
             if (scene_name == "Level 3")
@@ -694,16 +839,24 @@ public class MoveCharacter : MonoBehaviour, IPointerDownHandler
 
                 if (player_count == 1)
                 {
+                    GameObject Character1 = GameObject.Find("Character1");
+                    Character1.transform.position = new Vector3(0, 0, 0);
                     inst_time_1 = "0";
                 }
                 else
                 {
+                    GameObject Character1 = GameObject.Find("Character1");
+                    Character1.transform.position = new Vector3(0, 0, 0);
+                    GameObject Character2 = GameObject.Find("Character2");
+                    Character2.transform.position = new Vector3(0, 0, 0);
                     inst_time_1 = C1InstantiateTime.GetComponent<Text>().text;
                     inst_time_2 = C2InstantiateTime.GetComponent<Text>().text;
                 }
 
                 if (player_count == 3)
                 {
+                    GameObject Character3 = GameObject.Find("Character3");
+                    Character3.transform.position = new Vector3(0, 0, 0);
                     inst_time_3 = C3InstantiateTime.GetComponent<Text>().text;
                 }
 
@@ -790,17 +943,26 @@ public class MoveCharacter : MonoBehaviour, IPointerDownHandler
         {
             if (counter_character_name == "NOT SET")
             {
+                if (first_counter == false)
+                {
+                    time_restriction += 1;
+                    time_passed--;
+                    time_counter.GetComponent<Text>().text = time_restriction.ToString();
+                }
+                first_counter = false;
                 counter_character_name = character.name;
-                counter_character = true;
-            }
-            else if (character.name == counter_character_name)
-            {
-                counter_character = true;
             }
 
             if (walking_path.Count > 1) //still have destinations left in path
             {
-                
+                if (counter_character_name == character.name)
+                {
+                    Debug.Log(character.name);
+                    time_restriction -= 1;
+                    time_passed++;
+                    time_counter.GetComponent<Text>().text = time_restriction.ToString();
+                }
+
                 if (time_restriction <= 0) //time out
                 {
                     if (character.name == "Character1")
@@ -830,7 +992,7 @@ public class MoveCharacter : MonoBehaviour, IPointerDownHandler
                         if (last_destination.Substring(last_destination.Length - 1) == "T")
                         {
                             Transform new_destination = GameObject.Find(walking_path[1]).transform;
-                            Vector3 new_coord = new Vector3(new_destination.position.x, 0, new_destination.position.z);
+                            Vector3 new_coord = new Vector3(new_destination.position.x, 5, new_destination.position.z);
                             character.transform.position = new_coord;
                             character.transform.eulerAngles = new Vector3(0, 45, 0);
                             cylinderChangeColor.c1_pathHistory.Remove(walking_path[1]);
@@ -843,9 +1005,8 @@ public class MoveCharacter : MonoBehaviour, IPointerDownHandler
                     {
                         if (last_destination.Substring(last_destination.Length - 1) == "T")
                         {
-                            Debug.Log("2reaches here");
                             Transform new_destination = GameObject.Find(walking_path[1]).transform;
-                            Vector3 new_coord = new Vector3(new_destination.position.x, 0, new_destination.position.z);
+                            Vector3 new_coord = new Vector3(new_destination.position.x, 5, new_destination.position.z);
                             character.transform.position = new_coord;
                             character.transform.eulerAngles = new Vector3(0, 45, 0);
                             cylinderChangeColor.c2_pathHistory.Remove(walking_path[1]);
@@ -858,9 +1019,8 @@ public class MoveCharacter : MonoBehaviour, IPointerDownHandler
                     {
                         if (last_destination.Substring(last_destination.Length - 1) == "T")
                         {
-                            Debug.Log("3reaches here");
                             Transform new_destination = GameObject.Find(walking_path[1]).transform;
-                            Vector3 new_coord = new Vector3(new_destination.position.x, 0, new_destination.position.z);
+                            Vector3 new_coord = new Vector3(new_destination.position.x, 5, new_destination.position.z);
                             character.transform.position = new_coord; 
                             character.transform.eulerAngles = new Vector3(0, 45, 0);
                             cylinderChangeColor.c3_pathHistory.Remove(walking_path[1]);
@@ -890,16 +1050,16 @@ public class MoveCharacter : MonoBehaviour, IPointerDownHandler
                     start_move_3 = false;
                     finish_move_3 = true;
                 }
-                counter_character_name = "NOT SET";
-            }
 
-            if (counter_character == true)
-            {
-                counter_character = false;
-                time_restriction -= 1;
-                time_passed++;
-                time_counter.GetComponent<Text>().text = time_restriction.ToString();
-            }
+                if (counter_character_name == character.name)
+                {
+                    time_restriction -= 1;
+                    time_passed++;
+                    time_counter.GetComponent<Text>().text = time_restriction.ToString();
+                    counter_character_name = "NOT SET";
+                }
+                
+            }  
         }
     }
 
